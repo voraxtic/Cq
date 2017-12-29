@@ -1,0 +1,62 @@
+You are given a csv file with apartment listings: listings-details.csv. It contains information about an apartment such as number of bedrooms, bathrooms, price, square footage, status and geolocation. 
+
+1. Take this csv file and convert it to the following json format and create a Firebase database (Google provides free Firebase account) for it:
+ { "listings": [{
+        "id": "123ABC", # CSV id
+        "price": 200000, # Price in Dollars
+        "street": "123 Walnut St",
+        "bedrooms": 3, # Bedrooms
+        "bathrooms": 2, # Bathrooms
+        "sq_ft": 1500 # Square Footage,
+        "lat" : 33.36944420834164,
+        "long" : -112.11971469843907
+      }]
+  }
+  
+2. Write a command line python program which has one input which is the location of a json file called query.json with the following format
+
+{
+   "min_price":10000,
+   "max_price":20000,
+   "min_bed" : 2,
+   "max_bed" : 4,
+   "min_bath" : 1,
+   "max_bath" : 2,
+   "near" : {
+        "long": -112.11971469843907,
+        "lat": 33.36944420834164,
+        "radius: 2 
+   }
+
+}
+
+All the json key and values are optional. If the json file is empty then you return all the apartments otherwise return apartments matching the criterion 
+specified in query.json. All minimum and maximum fields should be inclusive (e.g. min_bed=2 and max_bed=4 should return listings with 2, 3, or 4 bedrooms).
+We want to be able to query listings based on a specified geo location and radius.
+If the "near" key is set, then you need to return all listings within the radius specified which will be in kilometers from longitude and latitude specified by "long" and "lat"
+
+The program should output a json string in the format of GeoJSON FeatureCollection of listings (http://geojson.io/) :
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {"type": "Point", "coordinates": [-112.1,33.4]},
+      "properties": {
+      "id": "123ABC", # CSV id
+       "price": 200000, # Price in Dollars
+        "street": "123 Walnut St",
+        "bedrooms": 3, # Bedrooms
+        "bathrooms": 2, # Bathrooms
+        "sq_ft": 1500 # Square Footage
+      }
+    },
+    ...
+  ]
+}
+
+
+
+
+
+    
