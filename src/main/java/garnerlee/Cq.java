@@ -180,7 +180,7 @@ public class Cq {
 		georef = fbInstance.getReference().child(LISTING_GEOFIRE_LOCATION);
 		GeoFire geoFire = new GeoFire(georef);
 
-		if (listingId == null) { // TODO: Throw.
+		if (listingId == null) {
 			throw new IllegalArgumentException("API error: String listingId required.");
 		}
 
@@ -447,7 +447,6 @@ public class Cq {
 				// Tighter Thread Object wait() --> notify() signaling is not applicable.
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -613,7 +612,7 @@ public class Cq {
 					System.out.println("Successfully created new user: " + userRecord.getUid());
 					cq._cmdHandled = true;
 				} else {
-					System.out.println("Failed to create new user: " + userRecord.getUid());
+					System.out.println("Failed to create new user");
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
