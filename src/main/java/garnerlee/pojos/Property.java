@@ -7,6 +7,5 @@ public class Property {
 	public String	street;
 	public Integer	bedrooms;
 	public Double	bathrooms; // 2.5 baths.
-	public Integer	sq_feet;
-	
+	public Integer	sq_ft;
 }

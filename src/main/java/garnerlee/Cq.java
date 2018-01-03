@@ -504,7 +504,7 @@ public class Cq {
 		
 		cq = new Cq();
 		String action = args[0];
-		String arg2 = args[1];
+		String arg1 = args[1];
 
 
 
@@ -513,7 +513,7 @@ public class Cq {
 		if (action.equals("import")) {
 			// [IMPORT]
 			try {
-				String filename = arg2;
+				String filename = arg1;
 				cq.doImport(filename, new InsertStatusListener() {
 					@Override
 					public void InsertStatusDone() {
@@ -541,13 +541,13 @@ public class Cq {
 			// [QUERY]
 			GeoQuery queryObject = null;
 			try {
-				String filename = arg2;
+				String filename = arg1;
 				queryObject = cq.doQuery(filename, new GeoQueryCompleteListener() {
 					@Override
 					public void QueryComplete(List<HomeListing> list) {
 						System.out.println("Got a complete *geo* query.");
 						String outputFileName = "home_listings_result.json";
-						if (args.length == 3 && !args[2].equals(arg2)) {
+						if (args.length == 3 && !args[2].equals(arg1)) {
 							outputFileName = args[2];
 						}
 						// GeoQuery has a signal for complete. The check for matching listings is against a realtime
@@ -579,7 +579,7 @@ public class Cq {
 
 		} else if (action.equals("wipe")) {
 			try {
-				if (!arg2.equals("IAMREALLYSURE")) {
+				if (!arg1.equals("IAMREALLYSURE")) {
 					System.out.println("wipe IAMREALLYSURE required to wipe.");
 				} else {
 					cq.doWipe(new OnCompleteListener<Void>() {
@@ -718,7 +718,7 @@ public class Cq {
 					f.properties.street = item.street;
 					f.properties.bedrooms = item.bedrooms;
 					f.properties.bathrooms = item.bathrooms;
-					f.properties.sq_feet = item.sq_ft;
+					f.properties.sq_ft = item.sq_ft;
 					fc.features.add(f);
 				}
 				System.out.println("--------------");
