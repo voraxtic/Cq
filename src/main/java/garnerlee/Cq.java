@@ -109,8 +109,8 @@ public class Cq {
 	 */
 	private void doImport(String filename, InsertStatusListener status) throws FileNotFoundException, IOException {
 
-		georef = fbInstance.getReference(LISTING_GEOFIRE_LOCATION);
-		ref = fbInstance.getReference(LISTING_LOCATION);
+		georef = fbInstance.getReference().child(LISTING_GEOFIRE_LOCATION);
+		ref = fbInstance.getReference().child(LISTING_LOCATION);
 
 		BufferedReader br = new BufferedReader(new FileReader(filename));
 
@@ -181,7 +181,7 @@ public class Cq {
 	// Yields the other if queried. Now, this also means callbacks need to be set to
 	// sync them.
 	private void insertListingGeo(String listingId, GeoLocation geo, GeoFire.CompletionListener geoListener) {
-		georef = fbInstance.getReference(LISTING_GEOFIRE_LOCATION);
+		georef = fbInstance.getReference().child(LISTING_GEOFIRE_LOCATION);
 		GeoFire geoFire = new GeoFire(georef);
 
 		if (listingId == null) { // TODO: Throw.
@@ -198,7 +198,7 @@ public class Cq {
 
 	/**
 	 * doQuery
-	 * @param filename
+	 * @param filename of the formatted query json file.
 	 * @param qListener
 	 * @return
 	 * @throws FileNotFoundException
@@ -220,11 +220,11 @@ public class Cq {
 		// Do query:
 
 		// Apparently ref listens to the same events.
-		georef = fbInstance.getReference(LISTING_GEOFIRE_LOCATION);
+		georef = fbInstance.getReference().child(LISTING_GEOFIRE_LOCATION);
 		GeoFire geoFire = new GeoFire(georef);
 
 		// As an admin, the app has access to read and write all data, regardless of Security Rules
-		ref = fbInstance.getReference(LISTING_LOCATION);
+		ref = fbInstance.getReference().child(LISTING_LOCATION);
 
 		// "Near" is really GeoFire, and queried separately. Both it, and the subquery filter is hypothetically
 		// against a realtime stream, and the subquery doesn't have a time limit.
@@ -252,7 +252,7 @@ public class Cq {
 	// will follow the math.
 	private void queryWithoutLocation(HomeListingQuery query, GeoQueryCompleteListener qListener) {
 		// Query listings for all IDs
-		DatabaseReference listref = fbInstance.getReference(LISTING_LOCATION);
+		DatabaseReference listref = fbInstance.getReference().child(LISTING_LOCATION);
 		List<HomeListing> list = Collections.synchronizedList(new ArrayList<HomeListing>());
 
 		Query fbquery = buildQuery(query, listref);
@@ -386,7 +386,7 @@ public class Cq {
 						location.latitude, location.longitude));
 
 				// Query listings with the IDs, and add it to the results.
-				DatabaseReference listref = fbInstance.getReference(LISTING_LOCATION);
+				DatabaseReference listref = fbInstance.getReference().child(LISTING_LOCATION);
 
 				listref.orderByChild("id").equalTo(key).addChildEventListener(new ChildEventListener() {
 
@@ -494,9 +494,9 @@ public class Cq {
 	// doImport, doQuery 
 	private boolean _cmdHandled = false;
 	/**
-	 * handleCommand is needed to allow unit tests. Main returns void, which won't allow asserts.
-	 * CompletableFuture is in Java8, but that's not Firebase API in use, so we'll have
-	 * to use standard Listeners.
+	 * handleCommand is needed to allow unit/functional tests. Main returns void, which
+	 * won't allow asserts. CompletableFuture is in Java8, but that's not Firebase API
+	 * in use, so we'll have to use standard Listeners.
 	 * @param args
 	 * @return
 	 */
@@ -510,7 +510,7 @@ public class Cq {
 		
 		cq = new Cq();
 		String action = args[0];
-		String filename = args[1];
+		String arg2 = args[1];
 
 
 
@@ -519,6 +519,7 @@ public class Cq {
 		if (action.equals("import")) {
 			// [IMPORT]
 			try {
+				String filename = arg2;
 				cq.doImport(filename, new InsertStatusListener() {
 					@Override
 					public void InsertStatusDone() {
@@ -546,12 +547,13 @@ public class Cq {
 			// [QUERY]
 			GeoQuery queryObject = null;
 			try {
+				String filename = arg2;
 				queryObject = cq.doQuery(filename, new GeoQueryCompleteListener() {
 					@Override
 					public void QueryComplete(List<HomeListing> list) {
 						System.out.println("Got a complete *geo* query.");
 						String outputFileName = "home_listings_result.json";
-						if (args.length == 3 && !args[2].equals(filename)) {
+						if (args.length == 3 && !args[2].equals(arg2)) {
 							outputFileName = args[2];
 						}
 						// GeoQuery has a signal for complete. The check for matching listings is against a realtime
@@ -582,15 +584,19 @@ public class Cq {
 			}
 
 		} else if (action.equals("wipe")) {
-			doWipe();
 			try {
-				System.out.println("Wiping. Wait for " + cq.waitMS + " milliseconds.");
-				Thread.sleep(6000);
-				cq._cmdHandled = true;
+				if (!arg2.equals("IAMREALLYSURE")) {
+					System.out.println("wipe IAMREALLYSURE required to wipe.");	
+				} else {
+					doWipe();
+					System.out.println("Wiping. Wait for " + cq.waitMS + " milliseconds.");
+					Thread.sleep(6000);
+					cq._cmdHandled = true;
+				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			cq._cmdHandled = true;
+			
 		} else if (action.equals("createuser")) {
 			// [CREATE A USER] (though AdminSDK API has full R/W access.)
 			CreateRequest request = new CreateRequest()
@@ -625,13 +631,15 @@ public class Cq {
 
 	
 	private static void doWipe() {
-		// Google Futures API...in future.
-		ref = fbInstance.getReference(LISTING_LOCATION);
-		ApiFuture<Void> fv1 = ref.child(LISTING_LOCATION).setValueAsync(null);
-		//fv1.addListener(listener, executor);
-		// ApiFuture<Void> fv2 = 
-		georef = fbInstance.getReference(LISTING_GEOFIRE_LOCATION);
-		ApiFuture<Void> fv2 = georef.child(LISTING_GEOFIRE_LOCATION).setValueAsync(null);
+		// Google Futures API...in future. We're a command line, so we'd need also return
+		// a future and let the caller hang round until the future threads return.
+		// Or just fire and forget.
+		ref = fbInstance.getReference().child(LISTING_LOCATION);
+		ApiFuture<Void> fv1 = ref.removeValueAsync();
+
+		georef = fbInstance.getReference().child(LISTING_GEOFIRE_LOCATION);
+		ApiFuture<Void> fv2 = georef.removeValueAsync();
+		return;
 	}
 
 	/**

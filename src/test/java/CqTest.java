@@ -9,11 +9,6 @@ import static org.junit.Assert.*;
 
 public class CqTest {
 	// Handle Command is basically main, for the purposes of testing.
-	@Test public void testHandleCommandWipe() {
-	    String[] args = {"wipe", "nothingburger"};
-
-        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
-    }
 	
 	@Test public void testHandleCommandEmpty() {
         assertTrue("handleCommand query should return 'true'", Cq.handleCommand(null));
@@ -36,4 +31,10 @@ public class CqTest {
 
         assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
     }
+    
+    /* This is a more utility and test case. This is just cleanup in the challenge problem. */
+    /*@Test public void testDoWipe() {
+    	String[] args = {"wipe", "IAMREALLYSURE"};
+    	assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }*/
 }

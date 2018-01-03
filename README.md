@@ -12,16 +12,21 @@ Firebase needs a few rules for indexing after table creation:
     },
     "listings-geofire": {
       ".indexOn": "g"
-    } 
+    }
   }
 }
 
 Also, you need to create a user for Admin SDK as well, since it's going to be
 reading and writing privileged info. Put it into this file at the eclipse
 project root. You should see a private key, as well as project specific
-information inside your service account file, named:
+information inside your Firebase service account file. For this project,
+it should be named:
 
 service-account.json
+
+# Security rules:
+Requires Firebase user with AdminSDK use privileges. This is not a server.
+
 
 Info:
   https://firebase.google.com/docs/database/admin/start
@@ -30,7 +35,7 @@ Info:
 Commands are as in JUnit tests. To actually run it on a raw command line, you'd
 need to create the classpath (-cp bin:firebasebin:geofirebin:gsonbin ) to add
 firebase, gson, etc. that exist only inside the IDE, not to mention use gradle
-to grab appropriate versions.
+to grab appropriate versions to add to the java classpath.
 
 So, just use JUnit tests.
 
