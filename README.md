@@ -8,13 +8,18 @@ Firebase needs a few rules for indexing after table creation:
     ".read": "auth != null",
     ".write": "auth != null",
     "listings": {
-      ".indexOn": "id"
+      ".indexOn": ["id","max_price"]
     },
     "listings-geofire": {
       ".indexOn": "g"
     }
   }
 }
+
+A note about "max_price" somehow being in the list, but not in the
+database. That index was suggested by Firebase itself in the
+System.out.println warning output when too large a query result is being
+processed.
 
 Also, you need to create a user for Admin SDK as well, since it's going to be
 reading and writing privileged info. Put it into this file at the eclipse
@@ -76,3 +81,4 @@ gradle refresh.
   and useful for abstracting data for many client-server and messaging type
   applications. Gson and Firebase Java uses them with Java reflection, and allow
   easy mappings to JSON. It is in the garnerlee.pojos package directory.
+- Only one orderBy allowed by Firebase.
