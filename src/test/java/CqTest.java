@@ -9,29 +9,125 @@ import static org.junit.Assert.*;
 
 public class CqTest {
 	// Handle Command is basically main, for the purposes of testing.
-	
+
 	@Test public void testHandleCommandEmpty() {
         assertTrue("handleCommand query should return 'true'", Cq.handleCommand(null));
     }
-	
+
     @Test public void testHandleCommandQuery() {
-        String[] args = {"query", "query.json"};
+        String[] args = {"query", "queries/query.json"};
         
         assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
     }
-    
+
     @Test public void testHandleCommandEmptyQuery() {
-        String[] args = {"query", "empty_query.json", "data_thief_results.json"};
+        String[] args = {"query", "queries/empty_query.json", "out/data_thief_results.json"};
         
         assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
     }
-    
+
     @Test public void testHandleCommandQuery2() {
-        String[] args = {"query", "query.json", "somewhere_else_result.json"};
+        String[] args = {"query", "queries/query.json", "out/somewhere_else_result.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+
+    @Test public void testHandleCommandQuery_Beds1() {
+        String[] args = {"query", "queries/query_beds.json", "out/query_beds.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+
+    @Test public void testHandleCommandQuery_Beds2() {
+        String[] args = {"query", "queries/query_beds_2to3.json", "out/query_beds_2to3.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+
+    @Test public void testHandleCommandQuery_Beds3() {
+        String[] args = {"query", "queries/query_beds_3to5.json", "out/query_beds_3to5.json"};
 
         assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
     }
     
+    @Test public void testHandleCommandQuery_Beds5() {
+        String[] args = {"query", "queries/query_beds_null_5.json", "out/query_beds_null_5.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+
+    @Test public void testHandleCommandQuery_Beds6() {
+        String[] args = {"query", "queries/query_beds_3_null.json", "out/query_beds_3_null.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+
+    @Test public void testHandleCommandQuery_Baths1() {
+        String[] args = {"query", "queries/query_baths.json", "out/query_baths.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+
+    @Test public void testHandleCommandQuery_Baths2() {
+        String[] args = {"query", "queries/query_baths_1to3.json", "out/query_baths_1to3.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+
+    @Test public void testHandleCommandQuery_Baths3() {
+        String[] args = {"query", "queries/query_baths_2to3.json", "out/query_baths_2to3.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+
+    @Test public void testHandleCommandQuery_Baths4() {
+        String[] args = {"query", "queries/query_baths_2to25.json", "out/query_baths_2to25.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+    
+    @Test public void testHandleCommandQuery_Baths5() {
+        String[] args = {"query", "queries/query_baths_null_5.json", "out/query_beds_null_5.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+
+    @Test public void testHandleCommandQuery_Baths6() {
+        String[] args = {"query", "queries/query_baths_3_null.json", "out/query_beds_3_null.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+
+    @Test public void testHandleCommandQuery_Expensive1() {
+        String[] args = {"query", "queries/query_more_expensive.json", "out/query_more_expensive.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+
+    @Test public void testHandleCommandQuery_Expensive2() {
+        String[] args = {"query", "queries/query_more_expensive_400k.json", "out/query_more_expensive_400k.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+
+    @Test public void testHandleCommandQuery_Expensive3() {
+        String[] args = {"query", "queries/query_more_expensive_258053.json", "out/query_more_expensive_258053.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+
+    @Test public void testHandleCommandQuery_Price_Max1() {
+        String[] args = {"query", "queries/query_more_price_max.json", "out/query_more_price_max.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+    
+    @Test public void testHandleCommandQuery_Price_Min1() {
+        String[] args = {"query", "queries/query_more_price_min.json", "out/query_more_price_min.json"};
+
+        assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
+    }
+
     /* This is a more utility and test case. This is just cleanup in the challenge problem. */
     /*@Test public void testDoWipe() {
     	String[] args = {"wipe", "IAMREALLYSURE"};

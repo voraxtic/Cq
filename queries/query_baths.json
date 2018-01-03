@@ -1,0 +1,14 @@
+{
+   "min_price":100000,
+   "max_price":300000,
+   "min_bed" : 1,
+   "max_bed" : 5,
+   "min_bath" : 1,
+   "max_bath" : 2,
+   "near" : {
+        "long": -112.11971469843907,
+        "lat": 33.36944420834164,
+        "radius": 2
+   }
+
+}

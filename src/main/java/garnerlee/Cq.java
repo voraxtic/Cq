@@ -69,7 +69,7 @@ public class Cq {
 		fbapp = initializeFirebase();
 	}
 
-	public static FirebaseApp initializeFirebase() {
+	private static FirebaseApp initializeFirebase() {
 		FirebaseApp appret = null;
 		try {
 			// [START initialize]
@@ -203,7 +203,7 @@ public class Cq {
 			throws FileNotFoundException {
 		System.out.println("Do Import on filename: " + filename);
 
-		// Using Gson, as reading a file is not the most interesting thing.
+		// Using Gson
 		Gson gson = new Gson();
 		JsonReader reader;
 		reader = new JsonReader(new FileReader(filename));
