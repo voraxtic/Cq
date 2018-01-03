@@ -18,13 +18,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import org.omg.CORBA.portable.ApplicationException;
-
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
-import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
@@ -37,8 +34,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
-
-
+import com.google.firebase.tasks.OnCompleteListener;
+import com.google.firebase.tasks.Task;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
@@ -62,8 +59,9 @@ public class Cq {
 
 	// Firebase is mostly asynchronous. Command line needs to wait to display results.
 	private long waitMS = 4000;
+	private boolean waitingForQueryCompletion = false;
 	private boolean waitingForFirebaseCompletion = false;
-
+	
 	static Cq cq;
 	FirebaseApp fbapp;
 	
@@ -73,7 +71,6 @@ public class Cq {
 
 	public static FirebaseApp initializeFirebase() {
 		FirebaseApp appret = null;
-		// Firebase apparently uses static class initialization.
 		try {
 			// [START initialize]
 			FileInputStream serviceAccount = new FileInputStream("service-account.json"); // Do not check in. Default Filepath is same as project root.
@@ -92,8 +89,6 @@ public class Cq {
 		}
 		
 		return appret;
-
-		// Shared Database server references for the options:
 	}
 
 
@@ -101,7 +96,8 @@ public class Cq {
 	private long progressCount = 0l;
 	private boolean readComplete = false;	
 	/**
-	 * doImport
+	 * doImport. Note: transactions (specifically the atomic transaction.get() call) doesn't appear to be part
+	 * of the GeoFire interface.
 	 * @param filename
 	 * @param status
 	 * @throws FileNotFoundException
@@ -219,11 +215,9 @@ public class Cq {
 
 		// Do query:
 
-		// Apparently ref listens to the same events.
 		georef = fbInstance.getReference().child(LISTING_GEOFIRE_LOCATION);
 		GeoFire geoFire = new GeoFire(georef);
 
-		// As an admin, the app has access to read and write all data, regardless of Security Rules
 		ref = fbInstance.getReference().child(LISTING_LOCATION);
 
 		// "Near" is really GeoFire, and queried separately. Both it, and the subquery filter is hypothetically
@@ -438,7 +432,7 @@ public class Cq {
 			@Override
 			public void onGeoQueryReady() {
 				System.out.println("All initial data has been loaded and events have been fired!");
-				waitingForFirebaseCompletion = false;
+				waitingForQueryCompletion = false;
 			}
 
 			@Override
@@ -446,8 +440,8 @@ public class Cq {
 				System.err.println("There was an error with this query: " + error);
 			}
 		});
-		// Wait for complete.
-		while (waitingForFirebaseCompletion) {
+		// Wait for complete. Not a Future.
+		while (waitingForQueryCompletion) {
 			try {
 				// Cq isn't a server/runnable, it's a command line that ends by itself.
 				// Tighter Thread Object wait() --> notify() signaling is not applicable.
@@ -496,7 +490,7 @@ public class Cq {
 	/**
 	 * handleCommand is needed to allow unit/functional tests. Main returns void, which
 	 * won't allow asserts. CompletableFuture is in Java8, but that's not Firebase API
-	 * in use, so we'll have to use standard Listeners.
+	 * in use, so we'll have to use standard Listeners, and Thread.sleep().
 	 * @param args
 	 * @return
 	 */
@@ -515,7 +509,7 @@ public class Cq {
 
 
 		//insertListingGeo("suttroTower", new GeoLocation(37.7552,122.4528));
-
+		cq._cmdHandled = false;
 		if (action.equals("import")) {
 			// [IMPORT]
 			try {
@@ -586,12 +580,16 @@ public class Cq {
 		} else if (action.equals("wipe")) {
 			try {
 				if (!arg2.equals("IAMREALLYSURE")) {
-					System.out.println("wipe IAMREALLYSURE required to wipe.");	
+					System.out.println("wipe IAMREALLYSURE required to wipe.");
 				} else {
-					doWipe();
+					cq.doWipe(new OnCompleteListener<Void>() {
+						@Override
+						public void onComplete(Task<Void> task) {
+							cq._cmdHandled = true;
+						}
+					});
 					System.out.println("Wiping. Wait for " + cq.waitMS + " milliseconds.");
-					Thread.sleep(6000);
-					cq._cmdHandled = true;
+					Thread.sleep(cq.waitMS);
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -611,8 +609,12 @@ public class Cq {
 			UserRecord userRecord = null;
 			try {
 				userRecord = FirebaseAuth.getInstance().createUserAsync(request).get();
-				System.out.println("Successfully created new user: " + userRecord.getUid());
-				cq._cmdHandled = true;
+				if (userRecord != null) {
+					System.out.println("Successfully created new user: " + userRecord.getUid());
+					cq._cmdHandled = true;
+				} else {
+					System.out.println("Failed to create new user: " + userRecord.getUid());
+				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} catch (ExecutionException e) {
@@ -629,16 +631,43 @@ public class Cq {
 		return cq._cmdHandled;
 	}
 
-	
-	private static void doWipe() {
-		// Google Futures API...in future. We're a command line, so we'd need also return
-		// a future and let the caller hang round until the future threads return.
-		// Or just fire and forget.
-		ref = fbInstance.getReference().child(LISTING_LOCATION);
-		ApiFuture<Void> fv1 = ref.removeValueAsync();
 
-		georef = fbInstance.getReference().child(LISTING_GEOFIRE_LOCATION);
-		ApiFuture<Void> fv2 = georef.removeValueAsync();
+	private void doWipe(OnCompleteListener listener) {
+		// Google Futures API...in future. Removeasync is Future based.
+		// .setValue(null) is a Task. Using task like the rest.
+		
+		ref = fbInstance.getReference().getRoot().child(LISTING_LOCATION);
+		georef = fbInstance.getReference().getRoot().child(LISTING_GEOFIRE_LOCATION);
+		
+		cq._cmdHandled = false;
+		
+		// We're not going to suppress warnings, but since GeoFire uses onComplete, we'll
+		// use it here.
+		/* Everything's deprecated. */
+		Task<Void> t1 = ref.removeValue();
+		t1.addOnCompleteListener(new OnCompleteListener<Void>() {
+			@Override
+			public void onComplete(Task<Void> task) {
+				System.out.println("Wiped: " + LISTING_LOCATION);
+				// now wipe georef.
+				Task<Void> t2 = georef.removeValue();
+				t2.addOnCompleteListener(new OnCompleteListener<Void>() {
+					@Override
+					public void onComplete(Task<Void> listingGeofireTask) {
+						System.out.println("Wiped: " + LISTING_GEOFIRE_LOCATION);
+						// Just pass it to my listener.
+						listener.onComplete(listingGeofireTask);
+					}
+				});
+			}
+			
+		});
+		
+		// This is quite new as of Dec 12, with not much documentation on how to use it.
+		// It's also just a wrapper over removeValue above currently.
+		// In either case, the caller has to wait. New is nice, and even works
+		//ApiFuture<Void> listDeleteFuture = ref.removeValueAsync();	
+		//ApiFuture<Void> listgeoDeleteFuture = georef.removeValueAsync();
 		return;
 	}
 

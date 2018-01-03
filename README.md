@@ -41,11 +41,27 @@ So, just use JUnit tests.
 
 	gradlew test
 
-Eclipse: 
-Cq arguments to Main:
+Eclipse:
+	Cq arguments to Main:
 
 	import listing-details.json
 	query query.json
 	query query.json output_results.json
 
 Run import first. Then the rest of the tests. Delete.
+
+# Eclipse
+Because it's sometimes refuses to start and crashes, in the workspace
+(not project workspace), there's a ".metadata" directory. If all else fails, and
+verbose turns up nothing actionable, rename it, and start eclipse again. Force a
+gradle refresh.
+
+# API implementation notes
+- FutureAPIs are not being used, as they are quite new.
+- Cloud FireStore has *native* geolocation support. At present, it's in Beta.
+  Currently, 1/2/2018, there doesn't appear to be a transaction interface
+  in GeoFire for listings, listings-geofire in the Firebase DB. Not ideal,
+  but Firebase appears to be working on a better long term solution. Looking
+  for an official statement.
+- The "bathrooms" datatype has been made a Double. 2.5 baths is a real world
+  number.

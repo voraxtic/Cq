@@ -13,7 +13,7 @@ public class CqTestImport {
 	}
 
 	// Disabled. Firebase API documentation testing only.
-	/*@Test */ public void testHandleCommandImportTiny() {
+	@Test public void testHandleCommandImportTiny() { 
 	    String[] args = {"import", "listing-details-tiny.csv"};
 	    
 	    assertTrue("handleCommand import should return 'true'", Cq.handleCommand(args));
