@@ -87,13 +87,13 @@ public class CqTest {
     }
     
     @Test public void testHandleCommandQuery_Baths5() {
-        String[] args = {"query", "queries/query_baths_null_5.json", "out/query_beds_null_5.json"};
+        String[] args = {"query", "queries/query_baths_null_5.json", "out/query_baths_null_5.json"};
 
         assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
     }
 
     @Test public void testHandleCommandQuery_Baths6() {
-        String[] args = {"query", "queries/query_baths_3_null.json", "out/query_beds_3_null.json"};
+        String[] args = {"query", "queries/query_baths_3_null.json", "out/query_baths_3_null.json"};
 
         assertTrue("handleCommand query should return 'true'", Cq.handleCommand(args));
     }
